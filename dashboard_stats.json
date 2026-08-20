@@ -1,0 +1,24 @@
+{
+  "total_cnt": 3291330,
+  "registered": 2671617,
+  "casual": 619762,
+  "working_days": 500,
+  "holidays": 21,
+  "avg_temp_c": 20.4,
+  "avg_hum_pct": 62.7,
+  "avg_windspeed": 12.6,
+  "season_pct": {
+    "1": 14.3,
+    "2": 27.9,
+    "3": 32.2,
+    "4": 25.6
+  },
+  "weather_pct": {
+    "1": 71.0,
+    "2": 24.2,
+    "3": 4.8,
+    "4": 0.0
+  },
+  "reg_pct": 81.2,
+  "cas_pct": 18.8
+}
