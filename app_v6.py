@@ -8,6 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.interpolate import make_interp_spline
+from sklearn.ensemble import GradientBoostingRegressor
 import shap
 from streamlit_option_menu import option_menu
 
@@ -50,13 +51,52 @@ hr {{ border-color: {LINE}; }}
 </style>
 """, unsafe_allow_html=True)
 
+def train_fallback_models():
+    df = pd.read_csv(os.path.join(BASE_DIR, 'cleaned_data.csv'), parse_dates=['dteday'])
+    df = df.sort_values(['dteday', 'hr']).reset_index(drop=True)
+
+    df['hr_sin'] = np.sin(2 * np.pi * df['hr'] / 24)
+    df['hr_cos'] = np.cos(2 * np.pi * df['hr'] / 24)
+    df['mnth_sin'] = np.sin(2 * np.pi * df['mnth'] / 12)
+    df['mnth_cos'] = np.cos(2 * np.pi * df['mnth'] / 12)
+    df['is_rush_hour'] = df['hr'].isin([7, 8, 9, 17, 18, 19]).astype(int)
+    df['is_weekend'] = df['weekday'].isin([0, 6]).astype(int)
+    df['temp_hum_interaction'] = df['temp'] * df['hum']
+    df['cnt_lag1'] = df['cnt'].shift(1)
+    df['cnt_lag24'] = df['cnt'].shift(24)
+    df['cnt_roll3'] = df['cnt'].shift(1).rolling(window=3, min_periods=1).mean()
+    for c in ['cnt_lag1', 'cnt_lag24', 'cnt_roll3']:
+        df[c] = df[c].fillna(df[c].median())
+
+    df = pd.get_dummies(df, columns=['season', 'weathersit'], prefix=['season', 'weather'])
+
+    feature_cols = [c for c in df.columns if c not in ['instant', 'dteday', 'casual', 'registered', 'cnt', 'hr', 'mnth', 'weekday']]
+    X = df[feature_cols]
+    y = df['cnt']
+
+    split_idx = int(len(df) * 0.8)
+    X_train, y_train = X.iloc[:split_idx], y.iloc[:split_idx]
+
+    model = GradientBoostingRegressor(n_estimators=200, max_depth=7, learning_rate=0.05, subsample=0.8, random_state=42)
+    model.fit(X_train, y_train)
+
+    q_lower = GradientBoostingRegressor(loss='quantile', alpha=0.05, n_estimators=200, max_depth=5, learning_rate=0.05, random_state=42)
+    q_upper = GradientBoostingRegressor(loss='quantile', alpha=0.95, n_estimators=200, max_depth=5, learning_rate=0.05, random_state=42)
+    q_lower.fit(X_train, y_train)
+    q_upper.fit(X_train, y_train)
+
+    return model, feature_cols, q_lower, q_upper
+
 @st.cache_resource
 def load_models():
-    with open(os.path.join(BASE_DIR, 'best_model_advanced.pkl'), 'rb') as f:
-        main = pickle.load(f)
-    with open(os.path.join(BASE_DIR, 'quantile_models.pkl'), 'rb') as f:
-        q = pickle.load(f)
-    return main['model'], main['features'], q['lower'], q['upper']
+    try:
+        with open(os.path.join(BASE_DIR, 'best_model_advanced.pkl'), 'rb') as f:
+            main = pickle.load(f)
+        with open(os.path.join(BASE_DIR, 'quantile_models.pkl'), 'rb') as f:
+            q = pickle.load(f)
+        return main['model'], main['features'], q['lower'], q['upper']
+    except Exception:
+        return train_fallback_models()
 
 model, feature_cols, q_lower, q_upper = load_models()
 
