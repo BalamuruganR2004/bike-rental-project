@@ -460,16 +460,16 @@ elif page == "Model":
 
     st.markdown("<div style='margin-top:1.5rem'></div>", unsafe_allow_html=True)
     st.markdown('<p style="font-family:\'Poppins\',sans-serif;font-weight:600;font-size:15px;">Model comparison</p>', unsafe_allow_html=True)
-    st.image(os.path.join(BASE_DIR, 'plot_09_model_comparison.png'), use_container_width=True)
+    st.image(os.path.join(BASE_DIR, 'plot_09_model_comparison.png'), use_column_width=True)
 
     st.markdown('<p style="font-family:\'Poppins\',sans-serif;font-weight:600;font-size:15px;margin-top:1.25rem;">Global feature importance (SHAP)</p>', unsafe_allow_html=True)
-    st.image(os.path.join(BASE_DIR, 'plot_12_shap_summary.png'), use_container_width=True)
+    st.image(os.path.join(BASE_DIR, 'plot_12_shap_summary.png'), use_column_width=True)
 
     st.markdown('<p style="font-family:\'Poppins\',sans-serif;font-weight:600;font-size:15px;margin-top:1.25rem;">Residuals</p>', unsafe_allow_html=True)
-    st.image(os.path.join(BASE_DIR, 'plot_10_residuals.png'), use_container_width=True)
+    st.image(os.path.join(BASE_DIR, 'plot_10_residuals.png'), use_column_width=True)
 
     st.markdown('<p style="font-family:\'Poppins\',sans-serif;font-weight:600;font-size:15px;margin-top:1.25rem;">90% prediction interval coverage</p>', unsafe_allow_html=True)
-    st.image(os.path.join(BASE_DIR, 'plot_13_prediction_intervals.png'), use_container_width=True)
+    st.image(os.path.join(BASE_DIR, 'plot_13_prediction_intervals.png'), use_column_width=True)
 
     st.markdown('<p style="font-family:\'Poppins\',sans-serif;font-weight:600;font-size:15px;margin-top:1.25rem;">Full results table</p>', unsafe_allow_html=True)
     st.dataframe(results.style.format({'MAE':'{:.2f}','RMSE':'{:.2f}','R2':'{:.4f}'}), use_container_width=True, hide_index=True)
